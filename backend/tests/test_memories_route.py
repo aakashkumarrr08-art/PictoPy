@@ -504,6 +504,14 @@ class TestListMemories:
 
         assert response.json()["data"]["memories"][0]["image_count"] == 2
 
+    def test_prefers_the_live_video_count(self, client: TestClient):
+        """Deleted videos shrink a memory; the card must not overstate it."""
+        row = make_memory_row(video_count=5, live_video_count=1)
+        with patch.object(memories_route, "db_list_memories", return_value=([row], 1)):
+            response = client.get("/memories")
+
+        assert response.json()["data"]["memories"][0]["video_count"] == 1
+
     @pytest.mark.parametrize("params", [{"limit": 0}, {"limit": 500}, {"offset": -1}])
     def test_rejects_out_of_range_pagination(
         self, client: TestClient, params: Dict[str, int]
@@ -532,6 +540,18 @@ class TestGetMemory:
 
         assert response.status_code == 200
         assert response.json()["data"]["memory"]["memory_id"] == "mem-1"
+
+    def test_prefers_the_live_video_count_in_story(self, client: TestClient):
+        row = make_memory_row(video_count=3, live_video_count=1)
+        with (
+            patch.object(memories_route, "db_get_memory", return_value=row),
+            patch.object(memories_route, "db_get_memory_images", return_value=[]),
+            patch.object(memories_route, "db_get_memory_videos", return_value=[]),
+        ):
+            response = client.get("/memories/mem-1")
+
+        assert response.status_code == 200
+        assert response.json()["data"]["memory"]["video_count"] == 1
 
     def test_unknown_id_returns_404(self, client: TestClient):
         with patch.object(memories_route, "db_get_memory", return_value=None):

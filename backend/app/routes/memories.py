@@ -123,11 +123,14 @@ def _release_run_if_the_worker_died(run_date: str, future: "Future[int]") -> Non
 
 
 def _with_live_count(row: Dict[str, Any]) -> Dict[str, Any]:
-    """Copy a memories row, preferring the live image count to the stored one."""
+    """Copy a memories row, preferring live media counts to stored ones."""
     data = dict(row)
-    live_count = data.pop("live_image_count", None)
-    if live_count is not None:
-        data["image_count"] = live_count
+    live_image_count = data.pop("live_image_count", None)
+    if live_image_count is not None:
+        data["image_count"] = live_image_count
+    live_video_count = data.pop("live_video_count", None)
+    if live_video_count is not None:
+        data["video_count"] = live_video_count
     return data
 
 

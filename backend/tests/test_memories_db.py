@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 import pytest
 
 from app.database.folders import db_create_folders_table
-from app.database.videos import db_create_videos_table
+from app.database.videos import db_create_videos_table, db_delete_videos_by_ids
 from app.database.images import db_create_images_table, db_delete_images_by_ids
 from app.database.memories import (
     db_count_unviewed_memories,
@@ -303,6 +303,27 @@ class TestCascades:
         # The stored count is a generation-time snapshot; the live count is not.
         assert stored["image_count"] == 3
         assert stored["live_image_count"] == 1
+
+    def test_live_video_count_reflects_deletions(
+        self, images: List[str], videos: List[str]
+    ):
+        memory_id = db_upsert_memory(
+            make_memory("k-vid", image_count=2, video_count=3),
+            entries(images[:2]),
+            entries(videos[:3]),
+        )
+
+        db_delete_videos_by_ids([videos[0]])
+
+        stored = db_get_memory(memory_id)
+        assert stored["video_count"] == 3
+        assert stored["live_video_count"] == 2
+        assert stored["live_image_count"] == 2
+
+        db_delete_videos_by_ids(videos[1:3])
+        stored = db_get_memory(memory_id)
+        assert stored["live_video_count"] == 0
+        assert stored["live_image_count"] == 2
 
 
 # ##############################

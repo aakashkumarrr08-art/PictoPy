@@ -469,6 +469,8 @@ def db_get_memory(memory_id: MemoryId) -> Optional[Dict[str, Any]]:
             SELECT m.*,
                    (SELECT COUNT(*) FROM memory_images mi
                      WHERE mi.memory_id = m.memory_id) AS live_image_count,
+                   (SELECT COUNT(*) FROM memory_videos mv
+                     WHERE mv.memory_id = m.memory_id) AS live_video_count,
                    ci.thumbnailPath AS cover_thumbnail_path
             FROM memories m
             LEFT JOIN images ci ON ci.id = m.cover_image_id
@@ -686,6 +688,8 @@ def db_list_memories(
             SELECT m.*,
                    (SELECT COUNT(*) FROM memory_images mi
                      WHERE mi.memory_id = m.memory_id) AS live_image_count,
+                   (SELECT COUNT(*) FROM memory_videos mv
+                     WHERE mv.memory_id = m.memory_id) AS live_video_count,
                    ci.thumbnailPath AS cover_thumbnail_path
             FROM memories m
             LEFT JOIN images ci ON ci.id = m.cover_image_id
@@ -719,6 +723,8 @@ def db_get_surfaceable_memory(reference_date: str) -> Optional[Dict[str, Any]]:
             SELECT m.*,
                    (SELECT COUNT(*) FROM memory_images mi
                      WHERE mi.memory_id = m.memory_id) AS live_image_count,
+                   (SELECT COUNT(*) FROM memory_videos mv
+                     WHERE mv.memory_id = m.memory_id) AS live_video_count,
                    ci.thumbnailPath AS cover_thumbnail_path
             FROM memories m
             LEFT JOIN images ci ON ci.id = m.cover_image_id
